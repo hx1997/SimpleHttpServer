@@ -1,13 +1,6 @@
 #include <stdio.h>
-
-#ifdef WIN32
-	#include <WinSock2.h>
-	#include <Ws2tcpip.h>
-
-	#pragma comment(lib, "Ws2_32.lib")
-#else
-	#include <sys/socket.h>
-#endif
+#include "socket.h"
+#include "error.h"
 
 // default www root path
 #define WWW_ROOT_PATH		"./www"
@@ -18,117 +11,10 @@
 
 // http response codes
 #define HTTP_OK				"200 OK"
+#define HTTP_NOT_FOUND		"404 Not Found"
 
-// error codes
-#define ERROR_STARTUP       (-1)
-#define ERROR_SOCKET        (-2)
-#define ERROR_BIND          (-3)
-#define ERROR_LISTEN		(-4)
-#define ERROR_ACCEPT		(-5)
-#define ERROR_SHUTDOWN      (-6)
-#define ERROR_CLOSESOCKET   (-7)
-#define ERROR_FOPEN			(-8)
 
 #define BUFSIZE 512
-
-#ifdef WIN32
-int InitWinSock() {
-	WSADATA data = { 0 };
-
-	if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-		perror("WSAStartup failed!");
-		return ERROR_STARTUP;
-	}
-
-	if (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2) {
-		perror("No usable version of WinSock.dll available");
-		WSACleanup();
-		return ERROR_STARTUP;
-	}
-
-	return 0;
-}
-#endif
-
-int CloseSocket(unsigned int sock) {
-	int ret;
-
-	ret = closesocket(sock);
-	if (ret == SOCKET_ERROR) {
-		perror("closesocket failed!");
-		return ERROR_CLOSESOCKET;
-	}
-
-	return 0;
-}
-
-int ShutdownSocket(unsigned int sock) {
-	int ret;
-
-	ret = shutdown(sock, SD_BOTH);
-	if (ret == SOCKET_ERROR) {
-		perror("shutdown failed!");
-		return ERROR_SHUTDOWN;
-	}
-
-	return 0;
-}
-
-unsigned int ListenForHttpConnection() {
-	unsigned int sock;
-	SOCKADDR_IN sockaddrIn = { 0 };
-	int ret;
-
-	// create socket
-	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET) {
-		perror("socket failed!");
-		return ERROR_SOCKET;
-	}
-
-	sockaddrIn.sin_family = AF_INET;
-	inet_pton(AF_INET, "127.0.0.1", &sockaddrIn.sin_addr.S_un.S_addr);
-	sockaddrIn.sin_port = htons(PORT_NO);
-
-	// bind to localhost:PORT_NO
-	ret = bind(sock, (SOCKADDR *)&sockaddrIn, sizeof(sockaddrIn));
-	if (ret == SOCKET_ERROR) {
-		perror("bind failed!");
-		CloseSocket(sock);
-		return ERROR_BIND;
-	}
-
-	// listen on PORT_NO
-	ret = listen(sock, SOMAXCONN);
-	if (ret == SOCKET_ERROR) {
-		perror("listen failed!");
-		CloseSocket(sock);
-		return ERROR_LISTEN;
-	}
-
-	return sock;
-}
-
-unsigned int AcceptConnection(unsigned int sock, SOCKADDR_IN *clientSockaddrIn, int sizeSockaddrIn) {
-	unsigned int clientSock;
-
-	// accept incoming connection
-	clientSock = accept(sock, (SOCKADDR *)clientSockaddrIn, &sizeSockaddrIn);
-	if (clientSock == SOCKET_ERROR) {
-		perror("accept failed!");
-		return ERROR_ACCEPT;
-	}
-
-	return clientSock;
-}
-
-int ReceiveData(unsigned int clientSock, char *buf, int bufsize) {
-	return recv(clientSock, buf, bufsize, 0);
-}
-
-int SendData(unsigned int clientSock, const char *buf, int bufsize) {
-	return send(clientSock, buf, bufsize, 0);
-}
 
 int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char *contentType) {
 	int datalen;
@@ -175,7 +61,7 @@ int main(int argc, char **argv) {
 
 	printf("SimpleHttpServer started.\n");
 	
-	unsigned int sock = ListenForHttpConnection();
+	unsigned int sock = ListenForHttpConnection(PORT_NO);
 	if (sock < 0) {
 		return sock;
 	}
@@ -217,7 +103,10 @@ int main(int argc, char **argv) {
 			}
 
 			SendHttpHeader(clientSock, HTTP_OK, "text / html");
-			SendTextFile(clientSock, filePath);
+			if (SendTextFile(clientSock, filePath) < 0) {
+				SendData(clientSock, "<html><head><title>404 Not Found</title></head><body bgcolor = \"white\">\
+					<center><h1>404 Not Found</h1></center><hr><center>SimpleHttpServer</center></body></html>", 159);
+			}
 		}
 
 		ShutdownSocket(clientSock);
