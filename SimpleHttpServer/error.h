@@ -9,3 +9,4 @@
 #define ERROR_SHUTDOWN	(-6)
 #define ERROR_CLOSESOCKET	(-7)
 #define ERROR_FOPEN	(-8)
+#define ERROR_NOT_IMPLEMENTED	(-9)

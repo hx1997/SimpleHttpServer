@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "socket.h"
+#include "parse.h"
+#include "http.h"
 #include "error.h"
 
 // default www root path
@@ -8,11 +10,6 @@
 #define WWW_INDEX_PATH		(WWW_ROOT_PATH WWW_INDEX_FILE)
 // default port number
 #define PORT_NO				(8080)
-
-// http response codes
-#define HTTP_OK				"200 OK"
-#define HTTP_NOT_FOUND		"404 Not Found"
-
 
 #define BUFSIZE 512
 
@@ -83,29 +80,49 @@ int main(int argc, char **argv) {
 
 		ret = ReceiveData(clientSock, recvBuf, BUFSIZE);
 		if (ret > 0) {
-			printf("Received data:\n%s\n", recvBuf);
-
-			char *getPathStart = recvBuf;
-			char *getPathEnd = NULL;
-			while (*getPathStart != ' ') getPathStart++;
-			while (*getPathStart == ' ') getPathStart++;
-			getPathEnd = getPathStart;
-			while (*getPathEnd != ' ') getPathEnd++;
-			*getPathEnd = '\0';
+			HttpRequestMessage req = { 0 };
+			ret = ParseHttpRequestMessage(recvBuf, &req);
+			if (ret < 0) {
+				if (ret == ERROR_NOT_IMPLEMENTED) {
+					SendHttpHeader(clientSock, HTTP_NOT_IMPLEMENTED, "text/html");
+					SendData(clientSock, NOT_IMPLEMENTED_HTML, strlen(NOT_IMPLEMENTED_HTML));
+					ShutdownSocket(clientSock);
+					CloseSocket(clientSock);
+					continue;
+				}
+			}
 
 			char filePath[BUFSIZE];
-
-			if (getPathEnd - getPathStart == 1 && *getPathStart == '/') {
-				sprintf_s(filePath, WWW_INDEX_PATH);
+			sprintf_s(filePath, BUFSIZE, WWW_ROOT_PATH "%s", req.uri);
+			ret = ParseHttpRequestUri(filePath, filePath, NULL, BUFSIZE, 0);
+			if (ret < 0) {
+				if (ret == ERROR_NOT_IMPLEMENTED) {
+					SendHttpHeader(clientSock, HTTP_NOT_IMPLEMENTED, "text/html");
+					SendData(clientSock, NOT_IMPLEMENTED_HTML, strlen(NOT_IMPLEMENTED_HTML));
+					ShutdownSocket(clientSock);
+					CloseSocket(clientSock);
+					continue;
+				}
 			}
-			else {
-				sprintf_s(filePath, WWW_ROOT_PATH "%s", getPathStart);
-			}
 
-			SendHttpHeader(clientSock, HTTP_OK, "text / html");
-			if (SendTextFile(clientSock, filePath) < 0) {
-				SendData(clientSock, "<html><head><title>404 Not Found</title></head><body bgcolor = \"white\">\
-					<center><h1>404 Not Found</h1></center><hr><center>SimpleHttpServer</center></body></html>", 159);
+			printf("%s %s\n", req.method == REQUEST_GET ? "GET" : "POST", filePath);
+
+			FILE *fp;
+			if (fopen_s(&fp, filePath, "r") != 0) {
+				SendHttpHeader(clientSock, HTTP_NOT_FOUND, "text/html");
+				SendData(clientSock, NOT_FOUND_HTML, strlen(NOT_FOUND_HTML));
+				ShutdownSocket(clientSock);
+				CloseSocket(clientSock);
+				continue;
+			}
+			fclose(fp);
+
+			SendHttpHeader(clientSock, HTTP_OK, "text/html");
+			ret = SendTextFile(clientSock, filePath);
+			if (ret < 0) {
+				ShutdownSocket(clientSock);
+				CloseSocket(clientSock);
+				continue;
 			}
 		}
 

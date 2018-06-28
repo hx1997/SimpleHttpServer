@@ -21,12 +21,21 @@
     <ClCompile Include="socket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="parse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="socket.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="error.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="http.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="parse.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

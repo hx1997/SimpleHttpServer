@@ -20,10 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="parse.cpp" />
     <ClCompile Include="socket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="error.h" />
+    <ClInclude Include="http.h" />
+    <ClInclude Include="parse.h" />
     <ClInclude Include="socket.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
