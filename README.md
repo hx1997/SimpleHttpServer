@@ -27,7 +27,9 @@ SimpleHttpServer [-p port] [-r www_root] [-i index_filename]
 ```
 
 `port`: the port number to listen on for HTTP connections
+
 `www_root`: path to the WWW root directory
+
 `index_filename`: default file returned when requesting `/`
 
 ## License
