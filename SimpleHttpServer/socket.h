@@ -12,7 +12,7 @@
 #endif
 
 extern int InitWinSock();
-extern unsigned int ListenForHttpConnection(int port);
+extern unsigned int ListenForHttpConnection(unsigned int port);
 extern unsigned int AcceptConnection(unsigned int sock, struct sockaddr_in *clientSockaddrIn, int sizeSockaddrIn);
 extern int ReceiveData(unsigned int clientSock, char *buf, int bufsize);
 extern int SendData(unsigned int clientSock, const char *buf, int bufsize);
