@@ -46,7 +46,7 @@ int ShutdownSocket(unsigned int sock) {
 	return 0;
 }
 
-unsigned int ListenForHttpConnection(int port) {
+unsigned int ListenForHttpConnection(unsigned int port) {
 	unsigned int sock;
 	struct sockaddr_in sockaddrIn = { 0 };
 	int ret;
@@ -59,7 +59,7 @@ unsigned int ListenForHttpConnection(int port) {
 	}
 
 	sockaddrIn.sin_family = AF_INET;
-	inet_pton(AF_INET, INADDR_ANY, &sockaddrIn.sin_addr.s_addr);
+	sockaddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
 	sockaddrIn.sin_port = htons(port);
 
 	// bind to port

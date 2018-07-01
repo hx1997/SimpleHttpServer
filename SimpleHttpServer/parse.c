@@ -98,7 +98,7 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 // @return
 // 0 - static
 // 1 - dynamic
-int ParseHttpRequestUri(const char *uri, char *resourcePath, char *args, int pathLen, int argsLen) {
+int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, int pathLen, int argsLen) {
 	char uriCopy[256];
 	STRNCPY(uriCopy, 256, uri, strlen(uri));
 	int ret = 0;

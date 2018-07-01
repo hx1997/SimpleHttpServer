@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 		struct sockaddr_in clientSockaddrIn = { 0 };
 		// wait for connection
 		unsigned int clientSock = AcceptConnection(sock, &clientSockaddrIn, sizeof(clientSockaddrIn));
-		if (clientSock < 0) {
+		if (clientSock < 0 || clientSockaddrIn.sin_port == 0) {
 			CloseSocket(sock);
 			return clientSock;
 		}
