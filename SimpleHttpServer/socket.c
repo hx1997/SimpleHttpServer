@@ -1,14 +1,7 @@
 #include <stdio.h>
 #include "error.h"
 #include "platform.h"
-
-#ifdef WIN32
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-#pragma comment(lib, "Ws2_32.lib")
-#else
-#include <sys/socket.h>
-#endif
+#include "socket.h"
 
 #ifdef WIN32
 int InitWinSock() {
@@ -33,7 +26,7 @@ int CloseSocket(unsigned int sock) {
 	int ret;
 
 	ret = CLOSESOCKET(sock);
-	if (ret == SOCKET_ERROR) {
+	if (ret < 0) {
 		fprintf(stderr, "closesocket failed!");
 		return ERROR_CLOSESOCKET;
 	}
@@ -45,7 +38,7 @@ int ShutdownSocket(unsigned int sock) {
 	int ret;
 
 	ret = shutdown(sock, SD_BOTH);
-	if (ret == SOCKET_ERROR) {
+	if (ret < 0) {
 		fprintf(stderr, "shutdown failed!");
 		return ERROR_SHUTDOWN;
 	}
@@ -55,12 +48,12 @@ int ShutdownSocket(unsigned int sock) {
 
 unsigned int ListenForHttpConnection(int port) {
 	unsigned int sock;
-	SOCKADDR_IN sockaddrIn = { 0 };
+	struct sockaddr_in sockaddrIn = { 0 };
 	int ret;
 
 	// create socket
 	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET) {
+	if (sock < 0) {
 		fprintf(stderr, "socket failed!");
 		return ERROR_SOCKET;
 	}
