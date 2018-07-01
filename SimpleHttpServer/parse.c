@@ -81,7 +81,7 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 	char method[16];
 
 	// TODO: More portable fix
-#ifdef WIN32
+#ifdef _WIN32
 	sscanf_s(requestLine, "%s %s %s\r\n", method, 16, structReq->uri, 256, structReq->version, 16);
 #else
 	sscanf(requestLine, "%s %s %s\r\n", method, structReq->uri, structReq->version);

@@ -1,7 +1,7 @@
 #pragma once
 #include "socket.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #define SPRINTF(a, b, c, ...) sprintf_s(a, b, c, __VA_ARGS__)
 #define FREAD(a, b, c, d, e) fread_s(a, b, c, d, e)
 #define STRNCPY(a, b, c, d) strncpy_s(a, b, c, d)

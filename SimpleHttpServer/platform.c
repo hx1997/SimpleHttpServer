@@ -4,7 +4,7 @@
 // 0 - success
 // 1 - error
 int fopenPortable(FILE **fp, const char *filename, const char *mode) {
-#ifdef WIN32
+#ifdef _WIN32
 	return fopen_s(fp, filename, mode);
 #else
 	*fp = fopen(filename, mode);

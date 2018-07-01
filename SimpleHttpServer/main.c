@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 	}
 
 	// init winsock
-#ifdef WIN32
+#ifdef _WIN32
 	ret = InitWinSock();
 	if (ret < 0) {
 		return ret;
@@ -113,7 +113,7 @@ finalize:
 	CloseSocket(sock);
 
 	// cleanup winsock
-#ifdef WIN32
+#ifdef _WIN32
 	WSACleanup();
 #endif
 
