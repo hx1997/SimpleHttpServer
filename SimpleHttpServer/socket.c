@@ -53,9 +53,9 @@ unsigned int ListenForHttpConnection(unsigned int port) {
 
 	// create socket
 	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock < 0) {
+	if ((signed int)sock == -1) {
 		fprintf(stderr, "socket failed!");
-		return ERROR_SOCKET;
+		return (unsigned int)~0;
 	}
 
 	sockaddrIn.sin_family = AF_INET;
@@ -67,7 +67,7 @@ unsigned int ListenForHttpConnection(unsigned int port) {
 	if (ret < 0) {
 		fprintf(stderr, "bind failed!");
 		CloseSocket(sock);
-		return ERROR_BIND;
+		return (unsigned int)~0;
 	}
 
 	// listen on port
@@ -75,7 +75,7 @@ unsigned int ListenForHttpConnection(unsigned int port) {
 	if (ret < 0) {
 		fprintf(stderr, "listen failed!");
 		CloseSocket(sock);
-		return ERROR_LISTEN;
+		return (unsigned int)~0;
 	}
 
 	return sock;
@@ -86,9 +86,9 @@ unsigned int AcceptConnection(unsigned int sock, struct sockaddr_in *clientSocka
 
 	// accept incoming connection
 	clientSock = accept(sock, (struct sockaddr *)clientSockaddrIn, &sizeSockaddrIn);
-	if (clientSock < 0) {
+	if ((signed int)clientSock == -1) {
 		fprintf(stderr, "accept failed!");
-		return ERROR_ACCEPT;
+		return (unsigned int)~0;
 	}
 
 	return clientSock;

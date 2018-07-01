@@ -5,7 +5,7 @@
 #include "parse.h"
 #include "platform.h"
 
-#define BUFSIZE 512
+#define BUFSIZE 512u
 
 int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char *contentType) {
 	int datalen;

@@ -1,14 +1,12 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "config.h"
 #include "socket.h"
 #include "parse.h"
-#include "http.h"
 #include "error.h"
 #include "platform.h"
 
-#define BUFSIZE 512
+#define BUFSIZE 512u
 
 static void usage(const char *executable) {
 	printf("Usage: %s [-p port] [-r www_root] [-i index_filename]\n", executable);
@@ -35,8 +33,8 @@ int main(int argc, char **argv) {
 	printf("SimpleHttpServer started.\n");
 	
 	unsigned int sock = ListenForHttpConnection(config.port);
-	if (sock < 0) {
-		return sock;
+	if ((signed int)sock == -1) {
+		return (signed int)sock;
 	}
 	printf("Listening on port %d for incoming HTTP connections.\n", config.port);
 	printf("WWW Root: %s\n", config.wwwRootPath);
@@ -46,9 +44,9 @@ int main(int argc, char **argv) {
 		struct sockaddr_in clientSockaddrIn = { 0 };
 		// wait for connection
 		unsigned int clientSock = AcceptConnection(sock, &clientSockaddrIn, sizeof(clientSockaddrIn));
-		if (clientSock < 0 || clientSockaddrIn.sin_port == 0) {
+		if ((signed int)clientSock == -1) {
 			CloseSocket(sock);
-			return clientSock;
+			return (signed int)clientSock;
 		}
 
 		printf("\nIncoming connection\n");

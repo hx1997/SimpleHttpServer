@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 #include "config.h"
 #include "error.h"
@@ -8,7 +7,7 @@
 #include "parse.h"
 #include "platform.h"
 
-#define minimum(a, b) (a < b ? a : b)
+#define minimum(a, b) ((a) < (b) ? (a) : (b))
 
 const char *mimeTypeMap[][2] = {
 	{ "html", "text/html" },
@@ -27,7 +26,7 @@ char *strlwr_n(char *str)
 	unsigned char *p = (unsigned char *)str;
 
 	while (*p) {
-		*p = tolower((unsigned char)*p);
+		*p = (unsigned char)tolower(*p);
 		p++;
 	}
 
@@ -45,7 +44,7 @@ int GetMimeType(const char *file, size_t size) {
 	STRNCPY(buf, len + 1, file, len);
 	strlwr_n(buf + len - 4);
 	for (int i = 0; mimeTypeMap[i][0]; i++) {
-		int extension_len = strlen(mimeTypeMap[i][0]);
+		size_t extension_len = strlen(mimeTypeMap[i][0]);
 		if (strncmp(buf + len - extension_len, mimeTypeMap[i][0], extension_len) == 0) {
 			return i;
 		}
@@ -55,17 +54,17 @@ int GetMimeType(const char *file, size_t size) {
 }
 
 int ParseHttpRequestMethod(const char *method, size_t size) {
-	int len = minimum(strlen(method), size);
+	size_t len = minimum(strlen(method), size);
 
 	switch (len)
 	{
 	case 3:
-		if (strncmp(method, "GET", 3) == 0) {
+		if (strncmp(method, "GET", 3u) == 0) {
 			return REQUEST_GET;
 		}
 		break;
 	case 4:
-		if (strncmp(method, "POST", 4) == 0) {
+		if (strncmp(method, "POST", 4u) == 0) {
 			//return REQUEST_POST;
 		}
 		break;
@@ -87,7 +86,7 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 	sscanf(requestLine, "%s %s %s\r\n", method, structReq->uri, structReq->version);
 #endif // WIN32
 
-	if ((ret = ParseHttpRequestMethod(method, 16)) < 0) {
+	if ((ret = ParseHttpRequestMethod(method, 16u)) < 0) {
 		return ret;
 	}
 
@@ -98,13 +97,13 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 // @return
 // 0 - static
 // 1 - dynamic
-int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, int pathLen, int argsLen) {
+int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLen, size_t argsLen) {
 	char uriCopy[256];
-	STRNCPY(uriCopy, 256, uri, strlen(uri));
+	STRNCPY(uriCopy, 256u, uri, strlen(uri));
 	int ret = 0;
 
 	strlwr_n(uriCopy + strlen(uriCopy) - 4);
-	if (strncmp(uriCopy + strlen(uriCopy) - 4, ".php", 4) == 0) {
+	if (strncmp(uriCopy + strlen(uriCopy) - 4, ".php", 4u) == 0) {
 		ret = 1;
 		return ERROR_NOT_IMPLEMENTED;
 	}
@@ -113,7 +112,7 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, int pathLen, 
 
 	// assume index page if uri ends in a slash
 	if (*(ch + strlen(ch) - 1) == '/') {
-		STRNCAT(uriCopy, 256, config.indexFileName, strlen(config.indexFileName));
+		STRNCAT(uriCopy, 256u, config.indexFileName, strlen(config.indexFileName));
 	}
 
 	// parse http arguments in uri
@@ -129,7 +128,7 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, int pathLen, 
 		++ch;
 	}
 
-	STRNCPY(resourcePath, pathLen, uriCopy, 256);
+	STRNCPY(resourcePath, pathLen, uriCopy, 256u);
 	return ret;
 }
 

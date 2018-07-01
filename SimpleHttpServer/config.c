@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include "error.h"
 #include "config.h"
@@ -28,7 +27,7 @@ int ParseArguments(int argc, char **argv) {
 		{
 		case 'p':
 			if (argv[++i]) {
-				config.port = atoi(argv[i]);
+				config.port = (unsigned short int)atoi(argv[i]);
 			}
 			else {
 				return ERROR_INVALID_ARGUMENTS;
