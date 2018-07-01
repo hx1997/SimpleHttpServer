@@ -17,7 +17,7 @@ int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char
 	int datalen;
 	char buf[BUFSIZE];
 
-	datalen = sprintf_s(buf, "HTTP/1.1 %s\r\nServer : SimpleHttpServer\r\nConnection : close\r\nContent - Type : %s\r\n\r\n", \
+	datalen = sprintf_s(buf, "HTTP/1.0 %s\r\nServer : SimpleHttpServer\r\nConnection : close\r\nContent - Type : %s\r\n\r\n", \
 		responseCode, contentType);
 
 	return SendData(clientSock, buf, datalen);
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 	}
 	printf("Listening on port %d for incoming HTTP connections.\n", PORT_NO);
 
-	while (1) {
+	while (true) {
 		SOCKADDR_IN clientSockaddrIn = { 0 };
 		// wait for connection
 		unsigned int clientSock = AcceptConnection(sock, &clientSockaddrIn, sizeof(clientSockaddrIn));
@@ -86,9 +86,7 @@ int main(int argc, char **argv) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
 					SendHttpHeader(clientSock, HTTP_NOT_IMPLEMENTED, "text/html");
 					SendData(clientSock, NOT_IMPLEMENTED_HTML, strlen(NOT_IMPLEMENTED_HTML));
-					ShutdownSocket(clientSock);
-					CloseSocket(clientSock);
-					continue;
+					goto finalize;
 				}
 			}
 
@@ -99,9 +97,7 @@ int main(int argc, char **argv) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
 					SendHttpHeader(clientSock, HTTP_NOT_IMPLEMENTED, "text/html");
 					SendData(clientSock, NOT_IMPLEMENTED_HTML, strlen(NOT_IMPLEMENTED_HTML));
-					ShutdownSocket(clientSock);
-					CloseSocket(clientSock);
-					continue;
+					goto finalize;
 				}
 			}
 
@@ -111,21 +107,18 @@ int main(int argc, char **argv) {
 			if (fopen_s(&fp, filePath, "r") != 0) {
 				SendHttpHeader(clientSock, HTTP_NOT_FOUND, "text/html");
 				SendData(clientSock, NOT_FOUND_HTML, strlen(NOT_FOUND_HTML));
-				ShutdownSocket(clientSock);
-				CloseSocket(clientSock);
-				continue;
+				goto finalize;
 			}
 			fclose(fp);
 
 			SendHttpHeader(clientSock, HTTP_OK, "text/html");
 			ret = SendTextFile(clientSock, filePath);
 			if (ret < 0) {
-				ShutdownSocket(clientSock);
-				CloseSocket(clientSock);
-				continue;
+				goto finalize;
 			}
 		}
 
+finalize:
 		ShutdownSocket(clientSock);
 		CloseSocket(clientSock);
 	}
