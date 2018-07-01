@@ -120,7 +120,10 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLe
 	while (1) {
 		if (*ch == '?') {
 			STRNCPY(resourcePath, pathLen, uriCopy, ch - uriCopy);
-			if (args) STRNCPY(args, argsLen, ++ch, uriCopy + strlen(uriCopy) - 1 - ch);
+			if (args) {
+				++ch;
+				STRNCPY(args, argsLen, ch, uriCopy + strlen(uriCopy) - ch);
+			}
 			return ret;
 		}
 		else if (*ch == '\0') {
