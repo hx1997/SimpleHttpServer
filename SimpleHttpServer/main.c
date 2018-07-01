@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
 
 			// parse request uri; return error if php file is being requested (not supported yet)
 			char filePath[BUFSIZE];
-			SPRINTF(filePath, BUFSIZE, "%s", config.wwwRootPath);
-			SPRINTF(filePath, BUFSIZE, "%s%s", filePath, req.uri);
+			sprintf_s(filePath, BUFSIZE, "%s", config.wwwRootPath);
+			sprintf_s(filePath, BUFSIZE, "%s%s", filePath, req.uri);
 			ret = ParseHttpRequestUri(filePath, filePath, NULL, BUFSIZE, 0);
 			if (ret < 0) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
