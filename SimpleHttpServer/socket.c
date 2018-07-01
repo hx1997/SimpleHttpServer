@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "error.h"
+#include "platform.h"
 
 #ifdef WIN32
 #include <WinSock2.h>
@@ -31,7 +32,7 @@ int InitWinSock() {
 int CloseSocket(unsigned int sock) {
 	int ret;
 
-	ret = closesocket(sock);
+	ret = CLOSESOCKET(sock);
 	if (ret == SOCKET_ERROR) {
 		fprintf(stderr, "closesocket failed!");
 		return ERROR_CLOSESOCKET;
