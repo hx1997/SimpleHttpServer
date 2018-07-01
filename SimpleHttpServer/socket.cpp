@@ -65,10 +65,10 @@ unsigned int ListenForHttpConnection(int port) {
 	}
 
 	sockaddrIn.sin_family = AF_INET;
-	inet_pton(AF_INET, "127.0.0.1", &sockaddrIn.sin_addr.S_un.S_addr);
+	inet_pton(AF_INET, INADDR_ANY, &sockaddrIn.sin_addr.S_un.S_addr);
 	sockaddrIn.sin_port = htons(port);
 
-	// bind to localhost:port
+	// bind to port
 	ret = bind(sock, (SOCKADDR *)&sockaddrIn, sizeof(sockaddrIn));
 	if (ret == SOCKET_ERROR) {
 		perror("bind failed!");
