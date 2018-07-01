@@ -59,12 +59,12 @@ unsigned int ListenForHttpConnection(int port) {
 	}
 
 	sockaddrIn.sin_family = AF_INET;
-	inet_pton(AF_INET, INADDR_ANY, &sockaddrIn.sin_addr.S_un.S_addr);
+	inet_pton(AF_INET, INADDR_ANY, &sockaddrIn.sin_addr.s_addr);
 	sockaddrIn.sin_port = htons(port);
 
 	// bind to port
-	ret = bind(sock, (SOCKADDR *)&sockaddrIn, sizeof(sockaddrIn));
-	if (ret == SOCKET_ERROR) {
+	ret = bind(sock, (struct sockaddr *)&sockaddrIn, sizeof(sockaddrIn));
+	if (ret < 0) {
 		fprintf(stderr, "bind failed!");
 		CloseSocket(sock);
 		return ERROR_BIND;
@@ -72,7 +72,7 @@ unsigned int ListenForHttpConnection(int port) {
 
 	// listen on port
 	ret = listen(sock, SOMAXCONN);
-	if (ret == SOCKET_ERROR) {
+	if (ret < 0) {
 		fprintf(stderr, "listen failed!");
 		CloseSocket(sock);
 		return ERROR_LISTEN;
@@ -85,8 +85,8 @@ unsigned int AcceptConnection(unsigned int sock, struct sockaddr_in *clientSocka
 	unsigned int clientSock;
 
 	// accept incoming connection
-	clientSock = accept(sock, (SOCKADDR *)clientSockaddrIn, &sizeSockaddrIn);
-	if (clientSock == SOCKET_ERROR) {
+	clientSock = accept(sock, (struct sockaddr *)clientSockaddrIn, &sizeSockaddrIn);
+	if (clientSock < 0) {
 		fprintf(stderr, "accept failed!");
 		return ERROR_ACCEPT;
 	}

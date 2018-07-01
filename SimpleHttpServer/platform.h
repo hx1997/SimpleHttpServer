@@ -6,5 +6,4 @@
 #else
 #define CLOSESOCKET(a) close(a)
 #define SD_BOTH (SHUT_RDWR)
-#define IPPROTO_TCP (0)
 #endif // WIN32
