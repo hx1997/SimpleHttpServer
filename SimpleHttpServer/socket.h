@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #endif
 
 extern int InitWinSock();
