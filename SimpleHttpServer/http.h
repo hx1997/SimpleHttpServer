@@ -34,4 +34,4 @@ typedef struct {
 } HttpRequestMessage;
 
 extern int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char *contentType);
-extern int SendTextFile(unsigned int clientSock, const char *file);
+extern int ServeStatic(unsigned int clientSock, const char *file, size_t size);

@@ -87,10 +87,15 @@ int main(int argc, char **argv) {
 			}
 			fclose(fp);
 
-			SendHttpHeader(clientSock, HTTP_OK, "text/html");
-			ret = SendTextFile(clientSock, filePath);
-			if (ret < 0) {
-				goto finalize;
+			if (ret == 0) {
+				// static content
+				if (ServeStatic(clientSock, filePath, BUFSIZE) < 0) {
+					goto finalize;
+				}
+			}
+			else {
+				// TODO: Deal with dynamic content
+				;
 			}
 		}
 
