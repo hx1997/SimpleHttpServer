@@ -5,11 +5,14 @@
 #pragma comment(lib, "Ws2_32.lib")
 #else
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
 #endif
 
 extern int InitWinSock();
 extern unsigned int ListenForHttpConnection(int port);
-extern unsigned int AcceptConnection(unsigned int sock, SOCKADDR_IN *clientSockaddrIn, int sizeSockaddrIn);
+extern unsigned int AcceptConnection(unsigned int sock, struct sockaddr_in *clientSockaddrIn, int sizeSockaddrIn);
 extern int ReceiveData(unsigned int clientSock, char *buf, int bufsize);
 extern int SendData(unsigned int clientSock, const char *buf, int bufsize);
 extern int CloseSocket(unsigned int sock);

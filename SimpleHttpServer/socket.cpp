@@ -87,7 +87,7 @@ unsigned int ListenForHttpConnection(int port) {
 	return sock;
 }
 
-unsigned int AcceptConnection(unsigned int sock, SOCKADDR_IN *clientSockaddrIn, int sizeSockaddrIn) {
+unsigned int AcceptConnection(unsigned int sock, struct sockaddr_in *clientSockaddrIn, int sizeSockaddrIn) {
 	unsigned int clientSock;
 
 	// accept incoming connection

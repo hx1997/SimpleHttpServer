@@ -30,6 +30,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="http.h" />
     <ClInclude Include="parse.h" />
+    <ClInclude Include="platform.h" />
     <ClInclude Include="socket.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

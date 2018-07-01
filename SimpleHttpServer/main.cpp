@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "config.h"
 #include "socket.h"
 #include "parse.h"
 #include "http.h"
 #include "error.h"
+#include "platform.h"
 
 #define BUFSIZE 512
 
@@ -41,7 +43,7 @@ int main(int argc, char **argv) {
 	printf("Index file: %s\n", config.indexFileName);
 
 	while (true) {
-		SOCKADDR_IN clientSockaddrIn = { 0 };
+		struct sockaddr_in clientSockaddrIn = { 0 };
 		// wait for connection
 		unsigned int clientSock = AcceptConnection(sock, &clientSockaddrIn, sizeof(clientSockaddrIn));
 		if (clientSock < 0) {
@@ -69,8 +71,8 @@ int main(int argc, char **argv) {
 
 			// parse request uri; return error if php file is being requested (not supported yet)
 			char filePath[BUFSIZE];
-			sprintf_s(filePath, BUFSIZE, "%s", config.wwwRootPath);
-			sprintf_s(filePath, BUFSIZE, "%s%s", filePath, req.uri);
+			SPRINTF(filePath, BUFSIZE, "%s", config.wwwRootPath);
+			SPRINTF(filePath, BUFSIZE, "%s%s", filePath, req.uri);
 			ret = ParseHttpRequestUri(filePath, filePath, NULL, BUFSIZE, 0);
 			if (ret < 0) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
