@@ -32,3 +32,6 @@ typedef struct {
 	char uri[256];
 	char version[16];
 } HttpRequestMessage;
+
+extern int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char *contentType);
+extern int SendTextFile(unsigned int clientSock, const char *file);
