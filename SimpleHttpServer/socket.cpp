@@ -14,12 +14,12 @@ int InitWinSock() {
 	WSADATA data = { 0 };
 
 	if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-		perror("WSAStartup failed!");
+		fprintf(stderr, "WSAStartup failed!");
 		return ERROR_STARTUP;
 	}
 
 	if (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2) {
-		perror("No usable version of WinSock.dll available");
+		fprintf(stderr, "No usable version of WinSock.dll available");
 		WSACleanup();
 		return ERROR_STARTUP;
 	}
@@ -33,7 +33,7 @@ int CloseSocket(unsigned int sock) {
 
 	ret = closesocket(sock);
 	if (ret == SOCKET_ERROR) {
-		perror("closesocket failed!");
+		fprintf(stderr, "closesocket failed!");
 		return ERROR_CLOSESOCKET;
 	}
 
@@ -45,7 +45,7 @@ int ShutdownSocket(unsigned int sock) {
 
 	ret = shutdown(sock, SD_BOTH);
 	if (ret == SOCKET_ERROR) {
-		perror("shutdown failed!");
+		fprintf(stderr, "shutdown failed!");
 		return ERROR_SHUTDOWN;
 	}
 
@@ -60,7 +60,7 @@ unsigned int ListenForHttpConnection(int port) {
 	// create socket
 	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == INVALID_SOCKET) {
-		perror("socket failed!");
+		fprintf(stderr, "socket failed!");
 		return ERROR_SOCKET;
 	}
 
@@ -71,7 +71,7 @@ unsigned int ListenForHttpConnection(int port) {
 	// bind to port
 	ret = bind(sock, (SOCKADDR *)&sockaddrIn, sizeof(sockaddrIn));
 	if (ret == SOCKET_ERROR) {
-		perror("bind failed!");
+		fprintf(stderr, "bind failed!");
 		CloseSocket(sock);
 		return ERROR_BIND;
 	}
@@ -79,7 +79,7 @@ unsigned int ListenForHttpConnection(int port) {
 	// listen on port
 	ret = listen(sock, SOMAXCONN);
 	if (ret == SOCKET_ERROR) {
-		perror("listen failed!");
+		fprintf(stderr, "listen failed!");
 		CloseSocket(sock);
 		return ERROR_LISTEN;
 	}
@@ -93,7 +93,7 @@ unsigned int AcceptConnection(unsigned int sock, SOCKADDR_IN *clientSockaddrIn, 
 	// accept incoming connection
 	clientSock = accept(sock, (SOCKADDR *)clientSockaddrIn, &sizeSockaddrIn);
 	if (clientSock == SOCKET_ERROR) {
-		perror("accept failed!");
+		fprintf(stderr, "accept failed!");
 		return ERROR_ACCEPT;
 	}
 

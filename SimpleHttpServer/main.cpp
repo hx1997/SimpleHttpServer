@@ -1,21 +1,25 @@
 #include <stdio.h>
+#include "config.h"
 #include "socket.h"
 #include "parse.h"
 #include "http.h"
 #include "error.h"
 
-// default www root path
-#define WWW_ROOT_PATH		"./www"
-#define WWW_INDEX_FILE		"/index.html"
-#define WWW_INDEX_PATH		(WWW_ROOT_PATH WWW_INDEX_FILE)
-// default port number
-#define PORT_NO				(8080)
-
 #define BUFSIZE 512
 
+static void usage(const char *executable) {
+	printf("Usage: %s [-p port] [-r www_root] [-i index_filename]\n", executable);
+}
 
 int main(int argc, char **argv) {
 	int ret;
+
+	if (argc >= 2) {
+		if (ParseArguments(argc, argv) < 0) {
+			usage(argv[0]);
+			return ERROR_INVALID_ARGUMENTS;
+		}
+	}
 
 	// init winsock
 #ifdef WIN32
@@ -27,11 +31,13 @@ int main(int argc, char **argv) {
 
 	printf("SimpleHttpServer started.\n");
 	
-	unsigned int sock = ListenForHttpConnection(PORT_NO);
+	unsigned int sock = ListenForHttpConnection(config.port);
 	if (sock < 0) {
 		return sock;
 	}
-	printf("Listening on port %d for incoming HTTP connections.\n", PORT_NO);
+	printf("Listening on port %d for incoming HTTP connections.\n", config.port);
+	printf("WWW Root: %s\n", config.wwwRootPath);
+	printf("Index file: %s\n", config.indexFileName);
 
 	while (true) {
 		SOCKADDR_IN clientSockaddrIn = { 0 };
@@ -60,7 +66,8 @@ int main(int argc, char **argv) {
 			}
 
 			char filePath[BUFSIZE];
-			sprintf_s(filePath, BUFSIZE, WWW_ROOT_PATH "%s", req.uri);
+			sprintf_s(filePath, BUFSIZE, "%s", config.wwwRootPath);
+			sprintf_s(filePath, BUFSIZE, "%s%s", filePath, req.uri);
 			ret = ParseHttpRequestUri(filePath, filePath, NULL, BUFSIZE, 0);
 			if (ret < 0) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
