@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "config.h"
 #include "socket.h"
 #include "parse.h"
@@ -55,6 +56,7 @@ int main(int argc, char **argv) {
 
 		ret = ReceiveData(clientSock, recvBuf, BUFSIZE);
 		if (ret > 0) {
+			// parse request message; return error if request method is not yet implemented
 			HttpRequestMessage req = { 0 };
 			ret = ParseHttpRequestMessage(recvBuf, &req);
 			if (ret < 0) {
@@ -65,6 +67,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
+			// parse request uri; return error if php file is being requested (not supported yet)
 			char filePath[BUFSIZE];
 			sprintf_s(filePath, BUFSIZE, "%s", config.wwwRootPath);
 			sprintf_s(filePath, BUFSIZE, "%s%s", filePath, req.uri);
@@ -79,6 +82,7 @@ int main(int argc, char **argv) {
 
 			printf("%s %s\n", req.method == REQUEST_GET ? "GET" : "POST", filePath);
 
+			// requested file exists?
 			FILE *fp;
 			if (fopen_s(&fp, filePath, "r") != 0) {
 				SendHttpHeader(clientSock, HTTP_NOT_FOUND, "text/html");
@@ -88,7 +92,7 @@ int main(int argc, char **argv) {
 			fclose(fp);
 
 			if (ret == 0) {
-				// static content
+				// serve static content
 				if (ServeStatic(clientSock, filePath, BUFSIZE) < 0) {
 					goto finalize;
 				}
