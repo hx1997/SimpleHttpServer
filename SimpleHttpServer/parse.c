@@ -6,8 +6,6 @@
 #include "http.h"
 #include "parse.h"
 
-#define min(a, b) (a < b ? a : b)
-
 const char *mimeTypeMap[][2] = {
 	{ "html", "text/html" },
 	{ "js", "application/javascript" },
@@ -80,7 +78,7 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 // 1 - dynamic
 int ParseHttpRequestUri(const char *uri, char *resourcePath, char *args, int pathLen, int argsLen) {
 	char uriCopy[256];
-	strncpy_s(uriCopy, uri, 256);
+	strncpy_s(uriCopy, 256, uri, strlen(uri));
 	int ret = 0;
 
 	_strlwr_s(uriCopy + strlen(uriCopy) - 4, 5);

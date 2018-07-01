@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="parse.cpp" />
-    <ClCompile Include="http.cpp" />
-    <ClCompile Include="socket.cpp" />
+    <ClCompile Include="config.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="parse.c" />
+    <ClCompile Include="http.c" />
+    <ClCompile Include="socket.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />

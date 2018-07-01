@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 	printf("WWW Root: %s\n", config.wwwRootPath);
 	printf("Index file: %s\n", config.indexFileName);
 
-	while (true) {
+	while (TRUE) {
 		struct sockaddr_in clientSockaddrIn = { 0 };
 		// wait for connection
 		unsigned int clientSock = AcceptConnection(sock, &clientSockaddrIn, sizeof(clientSockaddrIn));
