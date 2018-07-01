@@ -16,7 +16,7 @@ int ParseHttpRequestMethod(const char *method) {
 		break;
 	case 4:
 		if (strncmp(method, "POST", 4) == 0) {
-			return REQUEST_POST;
+			//return REQUEST_POST;
 		}
 		break;
 	default:
