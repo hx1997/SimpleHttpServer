@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "config.h"
 #include "error.h"
 #include "http.h"
 
@@ -57,10 +58,10 @@ int ParseHttpRequestUri(const char *uri, char *resourcePath, char *args, int pat
 
 	// assume index page if uri ends in a slash
 	if (*(ch + strlen(ch) - 1) == '/') {
-		strncat_s(uriCopy, 256, "index.html", 10);
+		strncat_s(uriCopy, 256, config.indexFileName, strlen(config.indexFileName));
 	}
 
-	// parse arguments
+	// parse http arguments in uri
 	while (1) {
 		if (*ch == '?') {
 			strncpy_s(resourcePath, pathLen, uriCopy, ch - uriCopy);
