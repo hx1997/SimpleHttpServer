@@ -3,6 +3,7 @@
 #include "socket.h"
 #include "error.h"
 #include "parse.h"
+#include "platform.h"
 
 #define BUFSIZE 512
 
@@ -10,7 +11,7 @@ int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char
 	int datalen;
 	char buf[BUFSIZE];
 
-	datalen = sprintf_s(buf, "HTTP/1.0 %s\r\nServer : SimpleHttpServer\r\nConnection : close\r\nContent-Type : %s\r\n\r\n", \
+	datalen = SPRINTF(buf, BUFSIZE, "HTTP/1.0 %s\r\nServer : SimpleHttpServer\r\nConnection : close\r\nContent-Type : %s\r\n\r\n", \
 		responseCode, contentType);
 
 	return SendData(clientSock, buf, datalen);
@@ -21,12 +22,12 @@ int SendTextFile(unsigned int clientSock, const char *file) {
 	FILE *fp;
 	char buf[BUFSIZE];
 
-	if (fopen_s(&fp, file, "r") != 0) {
+	if (fopenPortable(&fp, file, "r") != 0) {
 		return ERROR_FOPEN;
 	}
 
 	while (!feof(fp)) {
-		int datalen = fread_s(buf, BUFSIZE, 1, BUFSIZE, fp);
+		int datalen = FREAD(buf, BUFSIZE, 1, BUFSIZE, fp);
 		ret = SendData(clientSock, buf, datalen);
 		if (ret < 0) {
 			fclose(fp);

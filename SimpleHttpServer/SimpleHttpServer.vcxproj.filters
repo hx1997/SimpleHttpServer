@@ -30,6 +30,9 @@
     <ClCompile Include="socket.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="platform.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="socket.h">

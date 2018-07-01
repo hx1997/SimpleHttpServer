@@ -23,6 +23,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="parse.c" />
     <ClCompile Include="http.c" />
+    <ClCompile Include="platform.c" />
     <ClCompile Include="socket.c" />
   </ItemGroup>
   <ItemGroup>
