@@ -17,10 +17,7 @@ On both platforms, compiled executable will be in `Debug` directory by default.
 ```
 git clone https://github.com/hx1997/SimpleHttpServer.git
 cd SimpleHttpServer/SimpleHttpServer
-<<<<<<< HEAD
 mkdir ../Debug
-=======
->>>>>>> 46e2042ddd9d477f5e19c66fc7962dd88c5eebde
 make && make clean
 ```
 
