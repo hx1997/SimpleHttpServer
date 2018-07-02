@@ -15,10 +15,10 @@ On both platforms, compiled executable will be in `Debug` directory by default.
 ### Linux
 
 ```
-git clone https://github.com/hx1997/SimpleHttpServer.git
-cd SimpleHttpServer/SimpleHttpServer
-mkdir ../Debug
-make && make clean
+$ git clone https://github.com/hx1997/SimpleHttpServer.git
+$ cd SimpleHttpServer/SimpleHttpServer
+$ mkdir ../Debug
+$ make && make clean
 ```
 
 ## Usage
@@ -27,11 +27,11 @@ make && make clean
 SimpleHttpServer [-p port] [-r www_root] [-i index_filename]
 ```
 
-`port`: the port number to listen on for HTTP connections
+`port`: number of the port to listen on for HTTP connections, defaults to 8080
 
-`www_root`: path to the WWW root directory
+`www_root`: path to the WWW root directory, defaults to `./www`
 
-`index_filename`: default file returned when requesting `/`
+`index_filename`: default file returned when requesting `/`, defaults to `index.html`
 
 ## License
 
