@@ -6,7 +6,7 @@
 #include "error.h"
 #include "platform.h"
 
-#define BUFSIZE 512u
+#define BUFSIZE			8192u
 
 static void usage(const char *executable) {
 	printf("Usage: %s [-p port] [-r www_root] [-i index_filename]\n", executable);

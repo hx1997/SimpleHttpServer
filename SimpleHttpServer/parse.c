@@ -8,7 +8,8 @@
 #include "parse.h"
 #include "platform.h"
 
-#define minimum(a, b) ((a) < (b) ? (a) : (b))
+#define minimum(a, b)			((a) < (b) ? (a) : (b))
+#define BUFSIZE			8192u
 
 const char *mimeTypeMap[][2] = {
 	{ "html", "text/html" },
@@ -47,10 +48,12 @@ int GetMimeType(const char *file, size_t size) {
 	for (int i = 0; mimeTypeMap[i][0]; i++) {
 		size_t extension_len = strlen(mimeTypeMap[i][0]);
 		if (strncmp(buf + len - extension_len, mimeTypeMap[i][0], extension_len) == 0) {
+			free(buf);
 			return i;
 		}
 	}
 
+	free(buf);
 	return -1;
 }
 
@@ -66,7 +69,7 @@ int ParseHttpRequestMethod(const char *method, size_t size) {
 		break;
 	case 4:
 		if (strncmp(method, "POST", 4u) == 0) {
-			//return REQUEST_POST;
+			return REQUEST_POST;
 		}
 		break;
 	default:
@@ -99,8 +102,8 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 // 0 - static
 // 1 - dynamic
 int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLen, size_t argsLen) {
-	char uriCopy[256];
-	STRNCPY(uriCopy, 256u, uri, strlen(uri));
+	char uriCopy[BUFSIZE];
+	STRNCPY(uriCopy, BUFSIZE, uri, strlen(uri));
 	int ret = 0;
 
 	strlwr_n(uriCopy + strlen(uriCopy) - 4);
@@ -113,7 +116,7 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLe
 
 	// assume index page if uri ends in a slash
 	if (*(ch + strlen(ch) - 1) == '/') {
-		STRNCAT(uriCopy, 256u, config.indexFileName, strlen(config.indexFileName));
+		STRNCAT(uriCopy, BUFSIZE, config.indexFileName, strlen(config.indexFileName));
 	}
 
 	// parse http arguments in uri
@@ -132,8 +135,63 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLe
 		++ch;
 	}
 
-	STRNCPY(resourcePath, pathLen, uriCopy, 256u);
+	STRNCPY(resourcePath, pathLen, uriCopy, BUFSIZE);
 	return ret;
+}
+
+void ExtractContentLength(const char *str, HttpRequestMessage *structReq) {
+	const char *ch = str;
+
+	while (*ch == ' ') ch++;
+	while (*ch == ':') ch++;
+	while (*ch == ' ') ch++;
+
+	const char *end = ch;
+	while (*end != '\r') end++;
+
+	if (*(end + 1) != '\n') {
+		STRNCPY(structReq->headers.contentlen, 16u, "", 0);
+	}
+
+	STRNCPY(structReq->headers.contentlen, 16u, ch, end - ch);
+}
+
+void ExtractContentType(const char *str, HttpRequestMessage *structReq) {
+	const char *ch = str;
+
+	while (*ch == ' ') ch++;
+	while (*ch == ':') ch++;
+	while (*ch == ' ') ch++;
+
+	const char *end = ch;
+	while (*end != '\r') end++;
+
+	if (*(end + 1) != '\n') {
+		STRNCPY(structReq->headers.contenttype, 256u, "", 0);
+	}
+
+	STRNCPY(structReq->headers.contenttype, 256u, ch, end - ch);
+}
+
+int ParseHttpRequestHeaders(const char *headerLines, HttpRequestMessage *structReq) {
+	char lineCopy[BUFSIZE];
+	STRNCPY(lineCopy, BUFSIZE, headerLines, strlen(headerLines));
+	strlwr_n(lineCopy);
+
+	const char *ch = lineCopy;
+	if (strncmp(ch, "content-", 8) == 0) {
+		ch += 8;
+		if (strncmp(ch, "type", 4) == 0) {
+			ch += 4;
+			ExtractContentType(ch, structReq);
+		}
+		else if (strncmp(ch, "length", 6) == 0) {
+			ch += 6;
+			ExtractContentLength(ch, structReq);
+		}
+	}
+
+	return 0;
 }
 
 // TODO: check if message is of a valid HTTP request,
@@ -142,6 +200,14 @@ int ParseHttpRequestMessage(const char *message, HttpRequestMessage *structReq) 
 	int ret;
 
 	ret = ParseHttpRequestLine(message, structReq);
+	if (ret < 0) {
+		return ret;
+	}
+
+	while (*message != '\r') message++;
+	while (*message != '\n') message++;
+
+	ret = ParseHttpRequestHeaders(message, structReq);
 	if (ret < 0) {
 		return ret;
 	}

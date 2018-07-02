@@ -31,6 +31,10 @@ typedef struct {
 	int method;
 	char uri[256];
 	char version[16];
+	struct {
+		char contenttype[256];
+		char contentlen[16];
+	} headers;
 } HttpRequestMessage;
 
 extern int SendHttpHeader(unsigned int clientSock, const char *responseCode, const char *contentType);
