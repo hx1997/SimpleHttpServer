@@ -2,6 +2,12 @@
 
 Very simple and crude HTTP server written in C 
 
+## Features
+
+- [x] support GET requests for static pages
+- [ ] support GET/POST requests for PHP pages by using FastCGI
+- [ ] multiprocessing mode on Linux
+
 ## Build
 
 On both platforms, compiled executable will be in `Debug` directory by default.
