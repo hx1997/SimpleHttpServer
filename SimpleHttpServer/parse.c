@@ -57,6 +57,18 @@ int GetMimeType(const char *file, size_t size) {
 	return -1;
 }
 
+char *GetMethodString(int method) {
+	switch (method)
+	{
+	case 0:
+		return "GET";
+	case 1:
+		return "POST";
+	}
+
+	return NULL;
+}
+
 int ParseHttpRequestMethod(const char *method, size_t size) {
 	size_t len = minimum(strlen(method), size);
 
@@ -98,36 +110,34 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 	return 0;
 }
 
+void ResolveRelativePath(const char *relativePath, char *absolutePath, size_t size) {
+#ifdef WIN32
+	_fullpath(absolutePath, relativePath, size);
+#else
+	realpath(relativePath, absolutePath);
+#endif // WIN32
+}
+
 // @return
 // 0 - static
 // 1 - dynamic
 int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLen, size_t argsLen) {
 	char uriCopy[BUFSIZE];
-	STRNCPY(uriCopy, BUFSIZE, uri, strlen(uri));
+	STRNCPY(resourcePath, BUFSIZE, uri, strlen(uri));
 	int ret = 0;
 
-	strlwr_n(uriCopy + strlen(uriCopy) - 4);
-	if (strncmp(uriCopy + strlen(uriCopy) - 4, ".php", 4u) == 0) {
-		ret = 1;
-		return ERROR_NOT_IMPLEMENTED;
-	}
-
-	const char *ch = uriCopy;
-
-	// assume index page if uri ends in a slash
-	if (*(ch + strlen(ch) - 1) == '/') {
-		STRNCAT(uriCopy, BUFSIZE, config.indexFileName, strlen(config.indexFileName));
-	}
-
+	char *ch = uri;
 	// parse http arguments in uri
 	while (1) {
 		if (*ch == '?') {
-			STRNCPY(resourcePath, pathLen, uriCopy, ch - uriCopy);
+			resourcePath[ch - uri] = '\0';
+
 			if (args) {
 				++ch;
-				STRNCPY(args, argsLen, ch, uriCopy + strlen(uriCopy) - ch);
+				STRNCPY(args, argsLen, ch, uri + strlen(uri) - ch);
 			}
-			return ret;
+
+			break;
 		}
 		else if (*ch == '\0') {
 			break;
@@ -135,15 +145,29 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLe
 		++ch;
 	}
 
-	STRNCPY(resourcePath, pathLen, uriCopy, BUFSIZE);
+	ch = resourcePath;
+	
+	// assume index page if uri ends in a slash
+	if (*(ch + strlen(ch) - 1) == '/') {
+		STRNCAT(ch, BUFSIZE, config.indexFileName, strlen(config.indexFileName));
+	}
+
+	strlwr_n(ch + strlen(ch) - 4);
+
+	if (strncmp(ch + strlen(ch) - 4, ".php", 4u) == 0) {
+		ret = 1;
+	}
+
+	if (ret) {
+		ResolveRelativePath(resourcePath, uriCopy, pathLen);
+		STRNCPY(resourcePath, BUFSIZE, uriCopy, strlen(uriCopy));
+	}
+
 	return ret;
 }
 
 void ExtractContentLength(const char *str, HttpRequestMessage *structReq) {
-	const char *ch = str;
-
-	while (*ch == ' ') ch++;
-	while (*ch == ':') ch++;
+	const char *ch = strstr(str, ":") + 1;
 	while (*ch == ' ') ch++;
 
 	const char *end = ch;
@@ -154,13 +178,11 @@ void ExtractContentLength(const char *str, HttpRequestMessage *structReq) {
 	}
 
 	STRNCPY(structReq->headers.contentlen, 16u, ch, end - ch);
+	structReq->headers.contentlen[end - ch] = '\0';
 }
 
 void ExtractContentType(const char *str, HttpRequestMessage *structReq) {
-	const char *ch = str;
-
-	while (*ch == ' ') ch++;
-	while (*ch == ':') ch++;
+	const char *ch = strstr(str, ":") + 1;
 	while (*ch == ' ') ch++;
 
 	const char *end = ch;
@@ -171,24 +193,31 @@ void ExtractContentType(const char *str, HttpRequestMessage *structReq) {
 	}
 
 	STRNCPY(structReq->headers.contenttype, 256u, ch, end - ch);
+	structReq->headers.contenttype[end - ch] = '\0';
 }
 
 int ParseHttpRequestHeaders(const char *headerLines, HttpRequestMessage *structReq) {
 	char lineCopy[BUFSIZE];
+	const char *ch = lineCopy;
 	STRNCPY(lineCopy, BUFSIZE, headerLines, strlen(headerLines));
 	strlwr_n(lineCopy);
 
-	const char *ch = lineCopy;
-	if (strncmp(ch, "content-", 8) == 0) {
-		ch += 8;
-		if (strncmp(ch, "type", 4) == 0) {
-			ch += 4;
-			ExtractContentType(ch, structReq);
+	char *messageBodyStart = strstr(lineCopy, "\r\n\r\n");
+
+	for ( ; ch < messageBodyStart; ) {
+		if (strncmp(ch, "content-", 8) == 0) {
+			ch += 8;
+			if (strncmp(ch, "type", 4) == 0) {
+				ch += 4;
+				ExtractContentType(ch, structReq);
+			}
+			else if (strncmp(ch, "length", 6) == 0) {
+				ch += 6;
+				ExtractContentLength(ch, structReq);
+			}
 		}
-		else if (strncmp(ch, "length", 6) == 0) {
-			ch += 6;
-			ExtractContentLength(ch, structReq);
-		}
+		while (*ch != '\r' && *ch != '\0') ch++;
+		ch += 2;			// skip '\r\n'
 	}
 
 	return 0;
@@ -196,7 +225,7 @@ int ParseHttpRequestHeaders(const char *headerLines, HttpRequestMessage *structR
 
 // TODO: check if message is of a valid HTTP request,
 // current implementation works incorrectly if it is not
-int ParseHttpRequestMessage(const char *message, HttpRequestMessage *structReq) {
+int ParseHttpRequestMessage(char *message, HttpRequestMessage *structReq, char **messageBodyStart) {
 	int ret;
 
 	ret = ParseHttpRequestLine(message, structReq);
@@ -205,7 +234,9 @@ int ParseHttpRequestMessage(const char *message, HttpRequestMessage *structReq) 
 	}
 
 	while (*message != '\r') message++;
-	while (*message != '\n') message++;
+	message += 2;		// skip '\r\n'
+
+	*messageBodyStart = strstr(message, "\r\n\r\n") + 4;
 
 	ret = ParseHttpRequestHeaders(message, structReq);
 	if (ret < 0) {

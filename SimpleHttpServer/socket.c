@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "config.h"
 #include "error.h"
 #include "platform.h"
 #include "socket.h"
@@ -100,4 +101,29 @@ int ReceiveData(unsigned int clientSock, char *buf, int bufsize) {
 
 int SendData(unsigned int clientSock, const char *buf, int bufsize) {
 	return send(clientSock, buf, bufsize, 0);
+}
+
+unsigned int OpenCGIClientSock() {
+	unsigned int sock;
+	struct sockaddr_in sockaddrIn = { 0 };
+	int ret;
+
+	// create socket
+	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if ((signed int)sock == -1) {
+		fprintf(stderr, "socket failed!");
+		return (unsigned int)~0;
+	}
+
+	sockaddrIn.sin_family = AF_INET;
+	sockaddrIn.sin_addr.s_addr = inet_addr(config.fcgiHost);
+	sockaddrIn.sin_port = htons(config.fcgiPort);
+	
+	ret = connect(sock, (struct sockaddr *)&sockaddrIn, sizeof(sockaddrIn));
+	if (ret < 0) {
+		fprintf(stderr, "connect failed!");
+		return (unsigned int)~0;
+	}
+
+	return sock;
 }

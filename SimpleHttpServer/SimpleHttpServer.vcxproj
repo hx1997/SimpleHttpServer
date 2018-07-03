@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.c" />
+    <ClCompile Include="fastcgi.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="parse.c" />
     <ClCompile Include="http.c" />
@@ -29,6 +30,7 @@
   <ItemGroup>
     <ClInclude Include="config.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="fastcgi.h" />
     <ClInclude Include="http.h" />
     <ClInclude Include="parse.h" />
     <ClInclude Include="platform.h" />

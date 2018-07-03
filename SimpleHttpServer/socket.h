@@ -18,3 +18,4 @@ extern int ReceiveData(unsigned int clientSock, char *buf, int bufsize);
 extern int SendData(unsigned int clientSock, const char *buf, int bufsize);
 extern int CloseSocket(unsigned int sock);
 extern int ShutdownSocket(unsigned int sock);
+extern unsigned int OpenCGIClientSock();

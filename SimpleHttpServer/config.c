@@ -6,6 +6,8 @@ ServerConfig config = {
 	PORT_NO,			// port
 	WWW_ROOT_PATH,			// www root directory
 	WWW_INDEX_FILE,			// www index file name
+	FCGI_PORT,			// Fast-CGI port
+	FCGI_HOST,			// Fast-CGI host
 };
 
 int ParseArguments(int argc, char **argv) {
@@ -44,6 +46,22 @@ int ParseArguments(int argc, char **argv) {
 		case 'i':
 			if (argv[++i]) {
 				config.indexFileName = argv[i];
+			}
+			else {
+				return ERROR_INVALID_ARGUMENTS;
+			}
+			break;
+		case 'f':
+			if (argv[++i]) {
+				config.fcgiPort = (unsigned short int)atoi(argv[i]);
+			}
+			else {
+				return ERROR_INVALID_ARGUMENTS;
+			}
+			break;
+		case 'h':
+			if (argv[++i]) {
+				config.fcgiHost = argv[i];
 			}
 			else {
 				return ERROR_INVALID_ARGUMENTS;
