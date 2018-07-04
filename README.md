@@ -5,7 +5,7 @@ Very simple and crude HTTP server written in C
 ## Features
 
 - [x] support GET requests for static pages
-- [ ] support GET/POST requests for PHP pages by using FastCGI
+- [x] support GET/POST requests for PHP pages by using FastCGI
 - [ ] multiprocessing mode on Linux
 
 ## Build
@@ -30,14 +30,18 @@ $ make && make clean
 ## Usage
 
 ```
-SimpleHttpServer [-p port] [-r www_root] [-i index_filename]
+SimpleHttpServer [-p port] [-r www_root] [-i index_filename] [-h fastcgi_host] [-f fastcgi_port]
 ```
 
-`port`: number of the port to listen on for HTTP connections, defaults to 8080
+`port`: the port to listen on for HTTP connections, defaults to 8080
 
 `www_root`: path to the WWW root directory, defaults to `./www`
 
 `index_filename`: default file returned when requesting `/`, defaults to `index.html`
+
+`fastcgi_host`: host address FastCGI is running on, defaults to `127.0.0.1`
+
+`fastcgi_port`: the port FastCGI is listening on, defaults to 9000
 
 ## License
 
