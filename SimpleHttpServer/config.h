@@ -5,6 +5,7 @@ typedef struct {
 	char *indexFileName;
 	unsigned short int fcgiPort;
 	char *fcgiHost;
+	char enableMultiprocessing;
 } ServerConfig;
 
 // default www root path

@@ -54,6 +54,18 @@ int main(int argc, char **argv) {
 		
 		char recvBuf[BUFSIZE] = { 0 };
 
+		// Multiprocessing, Linux only
+#ifdef _WIN32
+		if (config.enableMultiprocessing) {
+			fprintf(stderr, "Multiprocessing not supported on Windows! falling back to single processing mode\n");
+		}
+#else
+		// TODO: stop child processes when they are finished
+		if (config.enableMultiprocessing && fork() < 0) {
+			fprintf(stderr, "fork() failed! falling back to single processing mode\n");
+		}
+#endif
+
 		ret = ReceiveData(clientSock, recvBuf, BUFSIZE);
 		if (ret > 0) {
 			// parse request message; return error if request method is not yet implemented
@@ -91,6 +103,7 @@ int main(int argc, char **argv) {
 
 			if (ret == 0) {
 				// serve static content
+
 				if (ServeStatic(clientSock, filePath, BUFSIZE) < 0) {
 					goto finalize;
 				}

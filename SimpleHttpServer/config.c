@@ -8,6 +8,7 @@ ServerConfig config = {
 	WWW_INDEX_FILE,			// www index file name
 	FCGI_PORT,			// Fast-CGI port
 	FCGI_HOST,			// Fast-CGI host
+	0,			// Disable multiprocessing
 };
 
 int ParseArguments(int argc, char **argv) {
@@ -66,6 +67,9 @@ int ParseArguments(int argc, char **argv) {
 			else {
 				return ERROR_INVALID_ARGUMENTS;
 			}
+			break;
+		case 'm':
+			config.enableMultiprocessing = 1;
 			break;
 		default:
 			return ERROR_INVALID_ARGUMENTS;
