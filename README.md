@@ -6,7 +6,7 @@ Very simple and crude HTTP server written in C
 
 - [x] support GET requests for static pages
 - [x] support GET/POST requests for PHP pages by using FastCGI
-- [ ] multiprocessing mode on Linux
+- [x] multiprocessing mode on Linux
 
 ## Build
 
@@ -30,8 +30,10 @@ $ make && make clean
 ## Usage
 
 ```
-SimpleHttpServer [-p port] [-r www_root] [-i index_filename] [-h fastcgi_host] [-f fastcgi_port]
+SimpleHttpServer [-m] [-p port] [-r www_root] [-i index_filename] [-h fastcgi_host] [-f fastcgi_port]
 ```
+
+`-m`: enable multiprocessing mode (one child per connection), disabled by default
 
 `port`: the port to listen on for HTTP connections, defaults to 8080
 
