@@ -6,7 +6,7 @@
 #include "error.h"
 #include "platform.h"
 
-#define BUFSIZE 512u
+#define BUFSIZE			8192u
 
 static void usage(const char *executable) {
 	printf("Usage: %s [-p port] [-r www_root] [-i index_filename]\n", executable);
@@ -58,24 +58,23 @@ int main(int argc, char **argv) {
 		if (ret > 0) {
 			// parse request message; return error if request method is not yet implemented
 			HttpRequestMessage req = { 0 };
-			ret = ParseHttpRequestMessage(recvBuf, &req);
+			char *messageBody;
+			ret = ParseHttpRequestMessage(recvBuf, &req, &messageBody);
 			if (ret < 0) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
-					SendHttpHeader(clientSock, HTTP_NOT_IMPLEMENTED, "text/html");
-					SendData(clientSock, NOT_IMPLEMENTED_HTML, strlen(NOT_IMPLEMENTED_HTML));
+					SendError(clientSock, HTTP_NOT_IMPLEMENTED, NOT_IMPLEMENTED_HTML);
 					goto finalize;
 				}
 			}
 
 			// parse request uri; return error if php file is being requested (not supported yet)
-			char filePath[BUFSIZE];
-			SPRINTF(filePath, BUFSIZE, "%s", config.wwwRootPath);
-			SPRINTF(filePath, BUFSIZE, "%s%s", filePath, req.uri);
-			ret = ParseHttpRequestUri(filePath, filePath, NULL, BUFSIZE, 0);
+			char fullUri[BUFSIZE], filePath[BUFSIZE], params[BUFSIZE];
+			SPRINTF(fullUri, BUFSIZE, "%s", config.wwwRootPath);
+			SPRINTF(fullUri, BUFSIZE, "%s%s", fullUri, req.uri);
+			ret = ParseHttpRequestUri(fullUri, filePath, params, BUFSIZE, BUFSIZE);
 			if (ret < 0) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
-					SendHttpHeader(clientSock, HTTP_NOT_IMPLEMENTED, "text/html");
-					SendData(clientSock, NOT_IMPLEMENTED_HTML, strlen(NOT_IMPLEMENTED_HTML));
+					SendError(clientSock, HTTP_NOT_IMPLEMENTED, NOT_IMPLEMENTED_HTML);
 					goto finalize;
 				}
 			}
@@ -85,8 +84,7 @@ int main(int argc, char **argv) {
 			// requested file exists?
 			FILE *fp;
 			if (fopenPortable(&fp, filePath, "r") != 0) {
-				SendHttpHeader(clientSock, HTTP_NOT_FOUND, "text/html");
-				SendData(clientSock, NOT_FOUND_HTML, strlen(NOT_FOUND_HTML));
+				SendError(clientSock, HTTP_NOT_FOUND, NOT_FOUND_HTML);
 				goto finalize;
 			}
 			fclose(fp);
@@ -98,8 +96,10 @@ int main(int argc, char **argv) {
 				}
 			}
 			else {
-				// TODO: Deal with dynamic content
-				;
+				// serve dynamic content
+				if (ServeDynamic(clientSock, filePath, params, messageBody, req) < 0) {
+					goto finalize;
+				}
 			}
 		}
 

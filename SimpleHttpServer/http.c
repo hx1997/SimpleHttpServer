@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 #include "http.h"
+#include "fastcgi.h"
 #include "socket.h"
 #include "error.h"
 #include "parse.h"
@@ -39,6 +41,11 @@ int SendTextFile(unsigned int clientSock, const char *file) {
 	return 0;
 }
 
+void SendError(unsigned int clientSock, const char *responseCode, const char *errorPageHtml) {
+	SendHttpHeader(clientSock, responseCode, "text/html");
+	SendData(clientSock, errorPageHtml, strlen(errorPageHtml));
+}
+
 int ServeStatic(unsigned int clientSock, const char *file, size_t bufsize) {
 	int ret;
 
@@ -56,6 +63,32 @@ int ServeStatic(unsigned int clientSock, const char *file, size_t bufsize) {
 	if (ret < 0) {
 		return ret;
 	}
+
+	return 0;
+}
+
+int ServeDynamic(unsigned int clientSock, const char *file, const char *args, char *messageBody, HttpRequestMessage structReq) {
+	int ret;
+	unsigned int cgiClientSock = OpenCGIClientSock();
+
+	if ((signed int)cgiClientSock == -1) {
+		SendError(clientSock, HTTP_INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_HTML);
+		return ERROR_SOCKET;
+	}
+
+	ret = SendFastCgi(cgiClientSock, file, args, messageBody, structReq);
+	if (ret < 0) {
+		SendError(clientSock, HTTP_INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_HTML);
+		return ret;
+	}
+
+	ret = ReceiveFastCgi(clientSock, cgiClientSock);
+	if (ret < 0) {
+		SendError(clientSock, HTTP_INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_HTML);
+		return ret;
+	}
+
+	CLOSESOCKET(cgiClientSock);
 
 	return 0;
 }

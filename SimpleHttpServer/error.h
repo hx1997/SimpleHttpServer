@@ -12,3 +12,4 @@
 #define ERROR_NOT_IMPLEMENTED			(-9)
 #define ERROR_TOO_FEW_ARGUMENTS			(-10)
 #define ERROR_INVALID_ARGUMENTS			(-11)
+#define ERROR_FCGI			(-12)
