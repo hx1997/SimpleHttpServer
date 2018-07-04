@@ -68,10 +68,10 @@ int main(int argc, char **argv) {
 			}
 
 			// parse request uri; return error if php file is being requested (not supported yet)
-			char fullUri[BUFSIZE], filePath[BUFSIZE], args[BUFSIZE];
+			char fullUri[BUFSIZE], filePath[BUFSIZE], params[BUFSIZE];
 			SPRINTF(fullUri, BUFSIZE, "%s", config.wwwRootPath);
 			SPRINTF(fullUri, BUFSIZE, "%s%s", fullUri, req.uri);
-			ret = ParseHttpRequestUri(fullUri, filePath, args, BUFSIZE, BUFSIZE);
+			ret = ParseHttpRequestUri(fullUri, filePath, params, BUFSIZE, BUFSIZE);
 			if (ret < 0) {
 				if (ret == ERROR_NOT_IMPLEMENTED) {
 					SendError(clientSock, HTTP_NOT_IMPLEMENTED, NOT_IMPLEMENTED_HTML);
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 			}
 			else {
 				// serve dynamic content
-				if (ServeDynamic(clientSock, filePath, args, messageBody, req) < 0) {
+				if (ServeDynamic(clientSock, filePath, params, messageBody, req) < 0) {
 					goto finalize;
 				}
 			}

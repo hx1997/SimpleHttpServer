@@ -165,7 +165,6 @@ int SendEmptyStdinRecord(unsigned int clientSock, int requestId) {
 int SendFastCgi(unsigned int clientSock, const char *file, const char *args, char *messageBody, HttpRequestMessage structReq) {
 	char *paramNames[] = {
 		"SCRIPT_FILENAME",
-		//"SCRIPT_NAME",
 		"REQUEST_METHOD",
 		"REQUEST_URI",
 		"QUERY_STRING",

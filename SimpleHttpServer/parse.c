@@ -114,27 +114,29 @@ void ResolveRelativePath(const char *relativePath, char *absolutePath, size_t si
 #ifdef WIN32
 	_fullpath(absolutePath, relativePath, size);
 #else
-	realpath(relativePath, absolutePath);
+	// ret defined to suppress warning of realpath() return value unused
+	char *ret;
+	ret = realpath(relativePath, absolutePath);
 #endif // WIN32
 }
 
 // @return
 // 0 - static
 // 1 - dynamic
-int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLen, size_t argsLen) {
+int ParseHttpRequestUri(char *uri, char *resourcePath, char *params, size_t pathLen, size_t argsLen) {
 	char uriCopy[BUFSIZE];
 	STRNCPY(resourcePath, BUFSIZE, uri, strlen(uri));
 	int ret = 0;
 
 	char *ch = uri;
-	// parse http arguments in uri
+	// parse http parameters in uri
 	while (1) {
 		if (*ch == '?') {
 			resourcePath[ch - uri] = '\0';
 
-			if (args) {
+			if (params) {
 				++ch;
-				STRNCPY(args, argsLen, ch, uri + strlen(uri) - ch);
+				STRNCPY(params, argsLen, ch, uri + strlen(uri) - ch);
 			}
 
 			break;
@@ -154,10 +156,12 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLe
 
 	strlwr_n(ch + strlen(ch) - 4);
 
+	// return 1 if php file is being requested
 	if (strncmp(ch + strlen(ch) - 4, ".php", 4u) == 0) {
 		ret = 1;
 	}
 
+	// FastCGI doesn't take relative path so we need to resolve it
 	if (ret) {
 		ResolveRelativePath(resourcePath, uriCopy, pathLen);
 		STRNCPY(resourcePath, BUFSIZE, uriCopy, strlen(uriCopy));
@@ -168,10 +172,10 @@ int ParseHttpRequestUri(char *uri, char *resourcePath, char *args, size_t pathLe
 
 void ExtractContentLength(const char *str, HttpRequestMessage *structReq) {
 	const char *ch = strstr(str, ":") + 1;
-	while (*ch == ' ') ch++;
+	while (*ch == ' ' && *ch != '\0') ch++;
 
 	const char *end = ch;
-	while (*end != '\r') end++;
+	while (*end != '\r' && *end != '\0') end++;
 
 	if (*(end + 1) != '\n') {
 		STRNCPY(structReq->headers.contentlen, 16u, "", 0);
@@ -183,10 +187,10 @@ void ExtractContentLength(const char *str, HttpRequestMessage *structReq) {
 
 void ExtractContentType(const char *str, HttpRequestMessage *structReq) {
 	const char *ch = strstr(str, ":") + 1;
-	while (*ch == ' ') ch++;
+	while (*ch == ' ' && *ch != '\0') ch++;
 
 	const char *end = ch;
-	while (*end != '\r') end++;
+	while (*end != '\r' && *end != '\0') end++;
 
 	if (*(end + 1) != '\n') {
 		STRNCPY(structReq->headers.contenttype, 256u, "", 0);
@@ -216,6 +220,7 @@ int ParseHttpRequestHeaders(const char *headerLines, HttpRequestMessage *structR
 				ExtractContentLength(ch, structReq);
 			}
 		}
+		// skip to next line
 		while (*ch != '\r' && *ch != '\0') ch++;
 		ch += 2;			// skip '\r\n'
 	}
@@ -224,7 +229,7 @@ int ParseHttpRequestHeaders(const char *headerLines, HttpRequestMessage *structR
 }
 
 // TODO: check if message is of a valid HTTP request,
-// current implementation works incorrectly if it is not
+// current implementation works incorrectly (and unsafely) if it is not
 int ParseHttpRequestMessage(char *message, HttpRequestMessage *structReq, char **messageBodyStart) {
 	int ret;
 
@@ -233,15 +238,17 @@ int ParseHttpRequestMessage(char *message, HttpRequestMessage *structReq, char *
 		return ret;
 	}
 
-	while (*message != '\r') message++;
+	// skip to header lines
+	while (*message != '\r' && *message != '\0') message++;
+	// TODO: Fix potential buffer overflow vulnerability
 	message += 2;		// skip '\r\n'
-
-	*messageBodyStart = strstr(message, "\r\n\r\n") + 4;
 
 	ret = ParseHttpRequestHeaders(message, structReq);
 	if (ret < 0) {
 		return ret;
 	}
+
+	*messageBodyStart = strstr(message, "\r\n\r\n") + 4;
 
 	return 0;
 }
