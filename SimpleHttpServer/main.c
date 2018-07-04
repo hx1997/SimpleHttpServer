@@ -9,7 +9,7 @@
 #define BUFSIZE			8192u
 
 static void usage(const char *executable) {
-	printf("Usage: %s [-p port] [-r www_root] [-i index_filename]\n", executable);
+	printf("Usage: %s [-m] [-p port] [-r www_root] [-i index_filename] [-h fastcgi_host] [-f fastcgi_port]\n", executable);
 }
 
 int main(int argc, char **argv) {
