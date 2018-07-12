@@ -103,7 +103,6 @@ int main(int argc, char **argv) {
 
 			if (ret == 0) {
 				// serve static content
-
 				if (ServeStatic(clientSock, filePath, BUFSIZE) < 0) {
 					goto finalize;
 				}
