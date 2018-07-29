@@ -111,7 +111,7 @@ int ParseHttpRequestLine(const char *requestLine, HttpRequestMessage *structReq)
 }
 
 char *ResolveRelativePath(const char *relativePath, char *absolutePath, size_t size) {
-#ifdef WIN32
+#ifdef _WIN32
 	return _fullpath(absolutePath, relativePath, size);
 #else
 	return realpath(relativePath, absolutePath);
