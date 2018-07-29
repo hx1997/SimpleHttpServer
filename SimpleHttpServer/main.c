@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
-			// parse request uri; return error if php file is being requested (not supported yet)
+			// parse request uri
 			char fullUri[BUFSIZE], filePath[BUFSIZE], params[BUFSIZE];
 			SPRINTF(fullUri, BUFSIZE, "%s", config.wwwRootPath);
 			SPRINTF(fullUri, BUFSIZE, "%s%s", fullUri, req.uri);
